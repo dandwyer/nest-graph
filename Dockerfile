@@ -11,12 +11,12 @@
 # CONFIGURE THE LOGIN WITH THE FOLLOWING COMMAND
 # docker exec -it [container id] /usr/bin/python3 /opt/nest-auth.py
 
-FROM      ubuntu
+FROM      ubuntu:24.04
 LABEL maintainer="jeff89179"
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y apt-utils unzip wget openjdk-8-jdk gnuplot supervisor adduser libfontconfig curl \
-    python python3-pip && rm -rf /var/lib/apt/lists/*
+    python3 python3-pip git && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p  /var/run/sshd /var/log/supervisor /data/hbase /data/zookeeper
 
 # Install HBase...1.1.0 is current as of 2018-10-17
@@ -40,11 +40,14 @@ ADD grafana.sh /opt/
 ADD dashboards /opt/dashboards
 
 
-# Install tCollector...1.3.2 is current as of 2018-10-17
-RUN wget https://github.com/OpenTSDB/tcollector/archive/v1.3.2.tar.gz && tar xzf v1.3.2.tar.gz && rm v1.3.2.tar.gz
+# Install tCollector
+RUN git clone https://github.com/OpenTSDB/tcollector.git && \
+    cd tcollector && \
+    git checkout 6b7a4253b2f8d91b81ce725c8e74b5f162fbd0f9 && \
+    rm -rf .git
 ADD home_collectors /opt/home_collectors
 
-RUN pip3 install python-google-nest
+RUN pip install python-google-nest --break-system-packages
 ADD tCollector.sh /opt/
 ADD nest-auth.py /opt/
 
