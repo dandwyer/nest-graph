@@ -11,12 +11,12 @@
 # CONFIGURE THE LOGIN WITH THE FOLLOWING COMMAND
 # docker exec -it [container id] /usr/bin/python3 /opt/nest-auth.py
 
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 LABEL maintainer="jeff89179"
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y apt-utils unzip wget openjdk-8-jdk gnuplot supervisor adduser libfontconfig curl \
-    python python3-pip && rm -rf /var/lib/apt/lists/*
+    python3 python3-pip && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p  /var/run/sshd /var/log/supervisor /data/hbase /data/zookeeper
 
 # Install HBase...1.1.0 is current as of 2018-10-17
@@ -40,11 +40,16 @@ ADD grafana.sh /opt/
 ADD dashboards /opt/dashboards
 
 
-# Install tCollector...1.3.2 is current as of 2018-10-17
-RUN wget https://github.com/OpenTSDB/tcollector/archive/v1.3.2.tar.gz && tar xzf v1.3.2.tar.gz && rm v1.3.2.tar.gz
+# Install tCollector by a recent commit given that last release from 2020
+# (i.e. https://github.com/OpenTSDB/tcollector/releases/tag/v1.3.3.1), is
+# seemingly not compatible with python 3.12.3 in the container.
+RUN wget https://github.com/OpenTSDB/tcollector/archive/6b7a4253b2f8d91b81ce725c8e74b5f162fbd0f9.tar.gz \
+    && tar xzf 6b7a4253b2f8d91b81ce725c8e74b5f162fbd0f9.tar.gz \
+    && rm 6b7a4253b2f8d91b81ce725c8e74b5f162fbd0f9.tar.gz \
+    && mv tcollector-6b7a4253b2f8d91b81ce725c8e74b5f162fbd0f9 tcollector
 ADD home_collectors /opt/home_collectors
 
-RUN pip3 install python-google-nest
+RUN pip3 install python-google-nest --break-system-packages
 ADD tCollector.sh /opt/
 ADD nest-auth.py /opt/
 
