@@ -11,7 +11,7 @@
 # CONFIGURE THE LOGIN WITH THE FOLLOWING COMMAND
 # docker exec -it [container id] /usr/bin/python3 /opt/nest-auth.py
 
-FROM      ubuntu
+FROM ubuntu:20.04
 LABEL maintainer="jeff89179"
 
 RUN apt-get update && \
